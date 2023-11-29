@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>data Detail</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 id = "message">Mời đưa vân tay vào thiết bị quét</h1>
+    <h2 id = "fp"></h2>
+</body>
+</html>
+<script>
+
+	const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
+	const host = 'ws://broker.hivemq.com:8000/mqtt'
+	const topic_Fp = '/AnhPD_Test/p/fp'
+	let fp = 0;
+	
+    const options = {
+	      keepalive: 60,
+	      clientId: clientId,
+	      protocolId: 'MQTT',
+	      protocolVersion: 4,
+	      clean: true,
+	      reconnectPeriod: 1000,
+	      connectTimeout: 30 * 1000,
+	      will: {
+	        topic: 'WillMsg',
+	        payload: 'Connection Closed abnormally..!',
+	        qos: 0,
+	        retain: false
+	      },
+	    }
+    console.log('Connecting mqtt client')
+    const client = mqtt.connect(host, options)
+    client.on('error', (err) => {
+      console.log('Connection error: ', err)
+      client.end()
+    })
+    client.on('reconnect', () => {
+      console.log('Reconnecting...')
+    })
+    client.on('connect', () => {
+      console.log(`Client connected: ${clientId}`)
+      // Subscribe
+      client.subscribe(topic_Fp, { qos: 0 })
+      client.publish('/AnhPD_Test/p/command', "0");
+    })
+    
+        client.publish(topic_Fp, 'Test message ...', { qos: 0, retain: false })
+    // Receive
+    client.on('message', (topic, message, packet) => {
+      //console.log(`Received Message: ${message.toString()} On topic: ${topic}`)
+      if (topic == topic_Fp){
+         fp = parseInt(message.toString());
+         document.getElementById('fp').innerHTML = fp.toString();
+         if(fp == -1){
+         	document.getElementById('message').innerHTML = "Không có vân tay của bạn trong CSDL";
+         }
+         if(fp > 0) {
+      		window.location.href = "data/" + fp;
+         }
+         if(fp == -2){
+          	document.getElementById('message').innerHTML = "Lỏng dây rồi giữ chặt vào đi";
+         }
+      }
+    })
+
+
+</script>
