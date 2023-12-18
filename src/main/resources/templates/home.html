@@ -14,9 +14,9 @@
             align-items: center;
             height: 100vh;
             background-image: url('https://img.freepik.com/free-vector/futuristic-fingerprint-background_23-2148372642.jpg?w=996&t=st=1701179874~exp=1701180474~hmac=7823d468d54e5274768b29d4baca4e4123ed10fc8bad5e64ab7428c3d43c7611');
-		    background-size: cover; /* Đảm bảo rằng ảnh nền trải dài và che kín toàn bộ phần nền */
-		    background-repeat: no-repeat; /* Loại bỏ lặp ảnh nền */
-		    background-attachment: fixed; /* Giữ ảnh nền cố định khi cuộn trang */
+            background-size: cover; /* Đảm bảo rằng ảnh nền trải dài và che kín toàn bộ phần nền */
+            background-repeat: no-repeat; /* Loại bỏ lặp ảnh nền */
+            background-attachment: fixed; /* Giữ ảnh nền cố định khi cuộn trang */
         }
 
         form {
@@ -50,27 +50,28 @@
         button[type="submit"]:hover {
             background-color: #0056b3;
         }
-        p{
-        	color: #FF0000;
+
+        p {
+            color: #FF0000;
         }
     </style>
 </head>
 <body>
-    <form action="check" method="GET">
-        <h2>Check Fingerprint</h2>
-     
-        <button type="submit">Check</button>
-    </form>
-        <form action="data/-1" method="GET">
-        <h2>Add New Fingerprint</h2>
- 
-        <button type="submit">Add</button>
-    </form>
+<form action="check" method="GET">
+    <h2>Check Fingerprint</h2>
+
+    <button type="submit">Check</button>
+</form>
+<form action="data/-1" method="GET">
+    <h2>Add New Fingerprint</h2>
+
+    <button type="submit">Add</button>
+</form>
 </body>
 <script th:inline="javascript">
 
-	    
-    </script>
+
+</script>
 
 </html>
 
