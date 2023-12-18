@@ -13,10 +13,7 @@ public class DataDAO extends DAO {
 	}
 	
 	public int getNextId() {
-		String sql = "SELECT AUTO_INCREMENT\r\n"
-				+ "FROM information_schema.TABLES\r\n"
-				+ "WHERE TABLE_SCHEMA = 'finger'\r\n"
-				+ "  AND TABLE_NAME = 'tbldata';";
+		String sql = "SELECT MAX(id) FROM tbldata;";
 		int reseult = 0;
 		try {
 			PreparedStatement ps = con.prepareStatement(sql);
