@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+</head>
+</head>
+<body>
+<div style="display: flex; justify-content: center; padding: 8px; margin: 20px 0">
+    <span style="font-weight: 600; font-size: 24px">Bảng điểm danh</span>
+</div>
+<table class="table">
+    <thead>
+    <th style="text-align: center" scope="col">id</th>
+    <th scope="col">Họ tên</th>
+    <th style="text-align: center" scope="col">Tuổi</th>
+    <th style="text-align: center" scope="col">Thời gian vào</th>
+    <th style="text-align: center" scope="col">Điểm danh</th>
+
+    <tr></tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+</table>
+<div id="message"></div>
+</body>
+</html>
+
+<script type="text/javascript">
+    let checkedIn = []
+    const onTime = moment({hour: 8, minute: 0, second: 0});
+    const body = document.getElementById("table-body")
+    const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
+    const host = 'ws://broker.hivemq.com:8000/mqtt'
+    const topic_Fp = '/AnhPD_Test/p/fp'
+    let fp = 0;
+
+    const options = {
+        keepalive: 60,
+        clientId: clientId,
+        protocolId: 'MQTT',
+        protocolVersion: 4,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+        will: {
+            topic: 'WillMsg',
+            payload: 'Connection Closed abnormally..!',
+            qos: 0,
+            retain: false
+        },
+    }
+    console.log('Connecting mqtt client')
+
+    const client = mqtt.connect(host, options)
+    client.on('error', (err) => {
+        console.log('Connection error: ', err)
+        client.end()
+    })
+    client.on('reconnect', () => {
+        console.log('Reconnecting...')
+    })
+    client.on('connect', () => {
+        console.log(`Client connected: ${clientId}`)
+        // Subscribe
+        client.subscribe(topic_Fp, {qos: 0})
+        client.publish('/AnhPD_Test/p/command', "0");
+    })
+
+    client.publish(topic_Fp, 'Test message ...', {qos: 0, retain: false})
+
+    // Receive
+    client.on('message', (topic, message, packet) => {
+        //console.log(`Received Message: ${message.toString()} On topic: ${topic}`)
+        if (topic == topic_Fp) {
+            fp = parseInt(message.toString());
+            if (fp == -1) {
+                document.getElementById('message').innerHTML = "Vân tay của bạn chưa được đăng ký";
+            }
+            if (fp > 0) {
+                if (checkedIn?.includes(fp)) {
+                    document.getElementById('message').innerHTML = "Bạn đã check in trước đó";
+                } else {
+                    checkedIn = [...checkedIn, fp]
+                    getUser(fp)
+                }
+            }
+            if (fp == -2) {
+                document.getElementById('message').innerHTML = "Lỏng dây rồi giữ chặt vào đi";
+            }
+        }
+    })
+
+    // async function saveAttendanceUser(id) {
+    //     const message = 'Hello from the web page!';
+    //     const apiUrl = `http://localhost:8080/attendances/save/${id}`; // Endpoint trên server Spring Boot
+    //
+    //     await fetch(apiUrl, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({message}), // Gửi tin nhắn trong body của yêu cầu
+    //     })
+    //         .then(response => response.json())
+    //         .catch(error => {
+    //             console.error('Error:', error);
+    //         });
+    // }
+
+    async function getUser(id) {
+        const message = 'Hello from the web page!';
+        const apiUrl = `http://localhost:8080/attendances/${id}`; // Endpoint trên server Spring Boot
+
+        await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({message}), // Gửi tin nhắn trong body của yêu cầu
+        })
+            .then(response => response.json())
+            .then(data => {
+                let currentTime = moment().format('HH:mm:ss')
+                let isOnTime = !!moment().isBefore(onTime)
+                body.innerHTML += '<tr>' +
+                    '<th style="text-align: center" scope="row">' + data.id + '</th>\n' +
+                    '        <td>' + data.name + '</td>\n' +
+                    '        <td style="text-align: center">' + data.age + '</td>\n' +
+                    '        <td style="text-align: center">' + currentTime + '</td>\n' +
+                    '        <td style="text-align: center">' + (isOnTime ? '<span style="font-size: 15px" class="badge badge-pill badge-success">Đủ</span>' : '<span style="font-size: 15px" class="badge badge-pill badge-warning">Muộn</span>') + '</td>' +
+                    '</tr>'
+
+                // const attendanceUser = {
+                //     user_id: data.id,
+                //     check_in: currentTime
+                // }
+                //
+                // saveAttendanceUser()
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+</script>
