@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import Fingerprint.User.UserController;
+
 
 
 @Controller
@@ -35,6 +37,7 @@ public class DataController {
 	
 	@GetMapping("/data")
 	public String home(Model model) throws IOException {
+		model.addAttribute("user", UserController.user);
 		return "home";
 	}
 	

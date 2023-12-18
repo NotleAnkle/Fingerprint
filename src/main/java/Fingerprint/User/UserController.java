@@ -30,7 +30,7 @@ public class UserController {
             	model.addAttribute("message", "");
             	this.user = user;
             	isLoggin = true;
-                return "redirect:/samples";   
+                return "redirect:/data";   
             } else {
                 model.addAttribute("message", "Tên người dùng hoặc mật khẩu không chính xác");
                 return "login"; 
@@ -40,7 +40,7 @@ public class UserController {
     public String logOut() {
     	isLoggin = false;
     	user = new User();
-    	return "redirect:/samples";
+    	return "redirect:/data";
     }
         
 //	@PostMapping("/register")

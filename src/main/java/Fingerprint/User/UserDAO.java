@@ -30,8 +30,8 @@ public class UserDAO extends DAO{
             return result;
     }
     public String addUser(User user) {
-            String sql = "INSERT INTO `library`.`tblUser` (`username`, `password`, `name`, `role`) VALUES (?, ?, ?, ?);";
-            String checkSql = "SELECT * FROM library.tblUser where username = '"+user.getUsername()+"';";
+            String sql = "INSERT INTO `tblUser` (`username`, `password`, `name`, `role`) VALUES (?, ?, ?, ?);";
+            String checkSql = "SELECT * FROM tblUser where username = '"+user.getUsername()+"';";
             int result = 0;
             try {
                     PreparedStatement ps = con.prepareStatement(checkSql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);

@@ -13,10 +13,7 @@ public class DataDAO extends DAO {
     }
 
     public int getNextId() {
-        String sql = "SELECT AUTO_INCREMENT\r\n"
-                + "FROM information_schema.TABLES\r\n"
-                + "WHERE TABLE_SCHEMA = 'finger'\r\n"
-                + "  AND TABLE_NAME = 'tbldata';";
+        String sql = "SELECT MAX(id) FROM tbldata;";
         int reseult = 0;
         try {
             PreparedStatement ps = con.prepareStatement(sql);
@@ -88,14 +85,14 @@ public class DataDAO extends DAO {
     }
 
     public String deleteData(int samplecode) {
-        String sql = "DELETE FROM `finger`.`tblsample` WHERE (`id` = ?);";
+        String sql = "DELETE FROM `finger`.`tbldata` WHERE (`id` = ?);";
         try {
             PreparedStatement ps = con.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setInt(1, samplecode);
             int result = ps.executeUpdate();
 
             ps.close();
-            return "redirect:/samples";
+            return "redirect:/data";
         } catch (Exception e) {
             e.printStackTrace();
         }

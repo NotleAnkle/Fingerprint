@@ -62,10 +62,15 @@
 
     <button type="submit">Check</button>
 </form>
-<form action="data/-1" method="GET">
+<form action="data/-1" method="GET" th:if="${user.role} == 'admin'">
     <h2>Add New Fingerprint</h2>
 
     <button type="submit">Add</button>
+</form>
+<form action="attendance" method="GET" th:if="${user.role} == 'admin'">
+    <h2>Statistical</h2>
+
+    <button type="submit">Watch</button>
 </form>
 </body>
 <script th:inline="javascript">

@@ -17,13 +17,18 @@
     <thead>
     <th style="text-align: center" scope="col">id</th>
     <th scope="col">Họ tên</th>
-    <th style="text-align: center" scope="col">Tuổi</th>
     <th style="text-align: center" scope="col">Thời gian vào</th>
-    <th style="text-align: center" scope="col">Điểm danh</th>
+    <th style="text-align: center" scope="col">Thời gian ra</th>
 
     <tr></tr>
     </thead>
     <tbody id="table-body">
+    	<tr th:each="data: ${datas}">
+				<td th:text="${data.id}"></td>
+				<td th:text="${data.name}"></td>
+				<td style="text-align: center" th:text="${data.check_in}"></td>
+				<td style="text-align: center" th:text="${data.check_out}"></td>
+		</tr>
     </tbody>
 </table>
 <div id="message"></div>
@@ -34,66 +39,6 @@
     let checkedIn = []
     const onTime = moment({hour: 8, minute: 0, second: 0});
     const body = document.getElementById("table-body")
-    const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
-    const host = 'ws://broker.hivemq.com:8000/mqtt'
-    const topic_Fp = '/AnhPD_Test/p/fp'
-    let fp = 0;
-
-    const options = {
-        keepalive: 60,
-        clientId: clientId,
-        protocolId: 'MQTT',
-        protocolVersion: 4,
-        clean: true,
-        reconnectPeriod: 1000,
-        connectTimeout: 30 * 1000,
-        will: {
-            topic: 'WillMsg',
-            payload: 'Connection Closed abnormally..!',
-            qos: 0,
-            retain: false
-        },
-    }
-    console.log('Connecting mqtt client')
-
-    const client = mqtt.connect(host, options)
-    client.on('error', (err) => {
-        console.log('Connection error: ', err)
-        client.end()
-    })
-    client.on('reconnect', () => {
-        console.log('Reconnecting...')
-    })
-    client.on('connect', () => {
-        console.log(`Client connected: ${clientId}`)
-        // Subscribe
-        client.subscribe(topic_Fp, {qos: 0})
-        client.publish('/AnhPD_Test/p/command', "0");
-    })
-
-    client.publish(topic_Fp, 'Test message ...', {qos: 0, retain: false})
-
-    // Receive
-    client.on('message', (topic, message, packet) => {
-        //console.log(`Received Message: ${message.toString()} On topic: ${topic}`)
-        if (topic == topic_Fp) {
-            fp = parseInt(message.toString());
-            if (fp == -1) {
-                document.getElementById('message').innerHTML = "Vân tay của bạn chưa được đăng ký";
-            }
-            if (fp > 0) {
-                if (checkedIn?.includes(fp)) {
-                    document.getElementById('message').innerHTML = "Bạn đã check in trước đó";
-                } else {
-                    checkedIn = [...checkedIn, fp]
-                    getUser(fp)
-                }
-            }
-            if (fp == -2) {
-                document.getElementById('message').innerHTML = "Lỏng dây rồi giữ chặt vào đi";
-            }
-        }
-    })
 
     // async function saveAttendanceUser(id) {
     //     const message = 'Hello from the web page!';

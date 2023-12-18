@@ -2,6 +2,10 @@ package Fingerprint.Attendance;
 
 import Fingerprint.Data.Data;
 import Fingerprint.Data.DataDAO;
+import Fingerprint.User.UserController;
+
+import java.io.IOException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,9 +19,10 @@ public class AttendanceController {
     private DataDAO dataDAO = new DataDAO();
 
     @GetMapping("/attendance")
-    public String getUser() {
-        return "attendance-table";
-    }
+	public String home(Model model) throws IOException {
+		model.addAttribute("datas", attendanceDAO.selectAllData());
+		return "attendance-table";
+	}
 
     @PostMapping("/attendances/{id}")
     public ResponseEntity<Data> getAttendanceUser(Model model, @PathVariable String id) {
