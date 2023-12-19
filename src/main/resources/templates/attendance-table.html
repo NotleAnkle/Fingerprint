@@ -23,12 +23,12 @@
     <tr></tr>
     </thead>
     <tbody id="table-body">
-    	<tr th:each="data: ${datas}">
-				<td th:text="${data.id}"></td>
-				<td th:text="${data.name}"></td>
-				<td style="text-align: center" th:text="${data.check_in}"></td>
-				<td style="text-align: center" th:text="${data.check_out}"></td>
-		</tr>
+    <tr th:each="data: ${datas}">
+        <td style="text-align: center" th:text="${data.id}"></td>
+        <td th:text="${data.name}"></td>
+        <td style="text-align: center" th:text="${data.check_in}"></td>
+        <td style="text-align: center" th:text="${data.check_out}"></td>
+    </tr>
     </tbody>
 </table>
 <div id="message"></div>
@@ -36,31 +36,116 @@
 </html>
 
 <script type="text/javascript">
-    let checkedIn = []
     const onTime = moment({hour: 8, minute: 0, second: 0});
     const body = document.getElementById("table-body")
+    const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
+    const host = 'ws://broker.hivemq.com:8000/mqtt'
+    const topic_Fp = '/AnhPD_Test/p/fp'
+    let fp = 0;
 
-    // async function saveAttendanceUser(id) {
-    //     const message = 'Hello from the web page!';
-    //     const apiUrl = `http://localhost:8080/attendances/save/${id}`; // Endpoint trên server Spring Boot
-    //
-    //     await fetch(apiUrl, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({message}), // Gửi tin nhắn trong body của yêu cầu
-    //     })
-    //         .then(response => response.json())
-    //         .catch(error => {
-    //             console.error('Error:', error);
-    //         });
-    // }
+    const options = {
+        keepalive: 60,
+        clientId: clientId,
+        protocolId: 'MQTT',
+        protocolVersion: 4,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+        will: {
+            topic: 'WillMsg',
+            payload: 'Connection Closed abnormally..!',
+            qos: 0,
+            retain: false
+        },
+    }
+    console.log('Connecting mqtt client')
+
+    const client = mqtt.connect(host, options)
+    client.on('error', (err) => {
+        console.log('Connection error: ', err)
+        client.end()
+    })
+    client.on('reconnect', () => {
+        console.log('Reconnecting...')
+    })
+    client.on('connect', () => {
+        console.log(`Client connected: ${clientId}`)
+        // Subscribe
+        client.subscribe(topic_Fp, {qos: 0})
+        client.publish('/AnhPD_Test/p/command', "0");
+    })
+
+    client.publish(topic_Fp, 'Test message ...', {qos: 0, retain: false})
+
+    // Receive
+    client.on('message', (topic, message, packet) => {
+        //console.log(`Received Message: ${message.toString()} On topic: ${topic}`)
+        if (topic == topic_Fp) {
+            fp = parseInt(message.toString());
+            if (fp == -1) {
+                alert("Vân tay của bạn chưa được đăng ký");
+                // document.getElementById('message').innerHTML = "Vân tay của bạn chưa được đăng ký";
+            }
+            if (fp > 0) {
+                const isCheckout = document.getElementById(`checkout${fp}`)
+                if (isCheckout) {
+                    if (isCheckout.innerHTML) {
+                        alert("Bạn đã điểm danh trước đó");
+                        // document.getElementById('message').innerHTML = "Bạn đã check in trước đó";
+                    } else {
+                        let checkout = moment().format('HH:mm:ss')
+                        isCheckout.innerHTML = checkout
+                        updateAttendanceUser(fp, checkout)
+                    }
+                } else {
+                    getUser(fp)
+                }
+            }
+            if (fp == -2) {
+                alert("Lỏng dây rồi giữ chặt vào đi");
+                // document.getElementById('message').innerHTML = "Lỏng dây rồi giữ chặt vào đi";
+            }
+        }
+    })
+
+    async function saveAttendanceUser(data) {
+        const apiUrl = `http://localhost:8080/attendances/save`;
+
+        await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({...data}),
+        })
+            .then(response => response.json())
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    async function updateAttendanceUser(id, checkout) {
+        const apiUrl = `http://localhost:8080/attendances/update/${id}`;
+
+        await fetch(apiUrl, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: checkout,
+        })
+            .then(response => response.json())
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
 
     async function getUser(id) {
         const message = 'Hello from the web page!';
         const apiUrl = `http://localhost:8080/attendances/${id}`; // Endpoint trên server Spring Boot
 
+        let checkoutId = `checkout${id}`;
         await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -69,23 +154,25 @@
             body: JSON.stringify({message}), // Gửi tin nhắn trong body của yêu cầu
         })
             .then(response => response.json())
-            .then(data => {
+            .then(async data => {
                 let currentTime = moment().format('HH:mm:ss')
                 let isOnTime = !!moment().isBefore(onTime)
                 body.innerHTML += '<tr>' +
                     '<th style="text-align: center" scope="row">' + data.id + '</th>\n' +
                     '        <td>' + data.name + '</td>\n' +
-                    '        <td style="text-align: center">' + data.age + '</td>\n' +
                     '        <td style="text-align: center">' + currentTime + '</td>\n' +
-                    '        <td style="text-align: center">' + (isOnTime ? '<span style="font-size: 15px" class="badge badge-pill badge-success">Đủ</span>' : '<span style="font-size: 15px" class="badge badge-pill badge-warning">Muộn</span>') + '</td>' +
+                    '        <td style="text-align: center" id="' + checkoutId + '"></td>\n' +
+                    // '        <td style="text-align: center">' + (isOnTime ? '<span style="font-size: 15px" class="badge badge-pill badge-success">Đủ</span>' : '<span style="font-size: 15px" class="badge badge-pill badge-warning">Muộn</span>') + '</td>' +
                     '</tr>'
 
-                // const attendanceUser = {
-                //     user_id: data.id,
-                //     check_in: currentTime
-                // }
-                //
-                // saveAttendanceUser()
+                const attendanceUser = {
+                    user_id: parseInt(data.id),
+                    name: data.name,
+                    check_in: currentTime,
+                    check_out: ''
+                }
+
+                await saveAttendanceUser(attendanceUser)
             })
             .catch(error => {
                 console.error('Error:', error);

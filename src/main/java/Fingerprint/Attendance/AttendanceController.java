@@ -2,7 +2,6 @@ package Fingerprint.Attendance;
 
 import Fingerprint.Data.Data;
 import Fingerprint.Data.DataDAO;
-import Fingerprint.User.UserController;
 
 import java.io.IOException;
 
@@ -19,21 +18,27 @@ public class AttendanceController {
     private DataDAO dataDAO = new DataDAO();
 
     @GetMapping("/attendance")
-	public String home(Model model) throws IOException {
-		model.addAttribute("datas", attendanceDAO.selectAllData());
-		return "attendance-table";
-	}
+    public String home(Model model) throws IOException {
+        model.addAttribute("datas", attendanceDAO.selectAllData());
+        return "attendance-table";
+    }
 
     @PostMapping("/attendances/{id}")
     public ResponseEntity<Data> getAttendanceUser(Model model, @PathVariable String id) {
-        Data data = dataDAO.selectData(Integer.parseInt(id));
+        Data data = dataDAO.selectData(Integer.valueOf(id));
         model.addAttribute("data", data);
 
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
-    @PostMapping("attendances/save/{id}")
-    public int saveAttendanceUser(Attendance data, @PathVariable String id) {
-        return attendanceDAO.saveAttendanceUser(id, data);
+    @PostMapping("/attendances/save")
+    public String saveAttendanceUser(@RequestBody Attendance attendanceUser) {
+        return attendanceDAO.saveAttendanceUser(attendanceUser);
     }
+
+    @PatchMapping("/attendances/update/{id}")
+    public String updateAttendanceUser(@PathVariable String id, @RequestBody String checkout) {
+        return attendanceDAO.updateAttendanceUser(Integer.valueOf(id), checkout);
+    }
+
 }
