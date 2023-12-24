@@ -69,7 +69,7 @@ public class AttendanceDAO extends DAO {
     }
 
     public String updateAttendanceUser(int id, String checkout) {
-        String sql = "UPDATE `finger`.`attendances` SET `check_out` = ? WHERE (`id` = ?);";
+        String sql = "UPDATE `finger`.`attendances` SET `check_out` = ? WHERE (`user_id` = ?);";
         boolean result = false;
 
         try {

@@ -93,7 +93,7 @@
                         alert("Bạn đã điểm danh trước đó");
                         // document.getElementById('message').innerHTML = "Bạn đã check in trước đó";
                     } else {
-                        let checkout = moment().format('HH:mm:ss')
+                        let checkout = moment().format('HH:mm DD-MM-YYYY')
                         isCheckout.innerHTML = checkout
                         updateAttendanceUser(fp, checkout)
                     }
@@ -155,7 +155,7 @@
         })
             .then(response => response.json())
             .then(async data => {
-                let currentTime = moment().format('HH:mm:ss')
+                let currentTime = moment().format('HH:mm DD-MM-YYYY')
                 let isOnTime = !!moment().isBefore(onTime)
                 body.innerHTML += '<tr>' +
                     '<th style="text-align: center" scope="row">' + data.id + '</th>\n' +
